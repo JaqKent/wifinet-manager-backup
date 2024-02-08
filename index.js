@@ -24,12 +24,16 @@ app.use(cors());
 const authRoute = require("./routes/auth");
 const clientRoute = require("./routes/clients");
 const billRoute = require("./routes/bills");
+const playerRoute = require("./routes/players");
+const playersillRoute = require("./routes/playerBills");
 
 // Middlewares de ruta
 
 app.use("/api/user", authRoute);
 app.use("/api/clients", clientRoute);
 app.use("/api/bills", billRoute);
+app.use("/api/players", playerRoute);
+app.use("/api/playerBills", playersillRoute);
 
 if (process.env.NODE_ENV === "production") {
   app.use(express.static("client/build"));
