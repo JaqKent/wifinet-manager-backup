@@ -20,7 +20,7 @@ const playersSchema = new Schema(
             min: 8,
             max: 9,
         },
-        birtday: {
+        birthday: {
             type: Date,
             required: false,
         },
