@@ -35,7 +35,7 @@ const clientSchema = new Schema(
     },
     plan: {
       type: String,
-      required: true,
+      required: false,
     },
     price: {
       type: Number,
