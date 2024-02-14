@@ -21,7 +21,7 @@ const playersSchema = new Schema(
             max: 9,
         },
         birtday: {
-            type: Number,
+            type: Date,
             required: false,
         },
         category: {
