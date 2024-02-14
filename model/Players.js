@@ -10,13 +10,13 @@ const playersSchema = new Schema(
         },
         address: {
             type: String,
-            required: true,
+            required: false,
             min: 3,
             max: 50,
         },
         dni: {
             type: String,
-            required: true,
+            required: false,
             min: 8,
             max: 9,
         },
