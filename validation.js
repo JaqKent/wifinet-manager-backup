@@ -72,7 +72,7 @@ const playersValidation = (data) => {
     name: Joi.string().required().trim(),
     address: Joi.string().required().trim(),
     dni: Joi.string().required().trim(),
-    birtday: Joi.date().required(),
+    birtday: Joi.date().optional(),
     category: Joi.string().optional().trim().empty(""),
     inscriptionDate: Joi.date().optional().empty(""),
     unSubscribingDate: Joi.date().optional().empty(""),
