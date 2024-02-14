@@ -1,7 +1,7 @@
 const router = require("express").Router();
 const auth = require("./verifyToken");
 const Player = require("../model/Players");
-const { clientValidation } = require("../validation");
+const { playersValidation } = require("../validation");
 
 router.get("/get", auth, async (req, res) => {
     const allPlayers = await Player.find();
@@ -32,7 +32,7 @@ router.post(`/search`, auth, (req, res) => {
 });
 
 router.post("/create", auth, async (req, res) => {
-    const { error } = clientValidation(req.body);
+    const { error } = playersValidation(req.body);
     if (error) {
         return res.send({ success: false, message: error.details[0].message });
     }

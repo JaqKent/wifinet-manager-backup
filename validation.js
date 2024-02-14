@@ -73,7 +73,7 @@ const playersValidation = (data) => {
     address: Joi.string().required().trim(),
     dni: Joi.string().required().trim(),
     birtday: Joi.date().required(),
-    category: dni: Joi.string().optional().trim().empty(""),
+    category: Joi.string().optional().trim().empty(""),
     inscriptionDate: Joi.date().optional().empty(""),
     unSubscribingDate: Joi.date().optional().empty(""),
     unSubscribingReason: Joi.string().trim().optional().empty(""),
@@ -82,11 +82,11 @@ const playersValidation = (data) => {
     priceInstall: Joi.number().optional().empty(""),
     phone: Joi.number().required(),
     phoneAlt: Joi.number().optional().empty(""),
-    obraSocial: Joi.string().optional().trim().empty("")
-    nickName: Joi.string().optional().trim().empty("")
-    bloodType: Joi.string().optional().trim().empty("")
-    tshirtSize: Joi.string().optional().trim().empty("")
-    shortSize: Joi.string().optional().trim().empty("")
+    obraSocial: Joi.string().optional().trim().empty(""),
+    nickName: Joi.string().optional().trim().empty(""),
+    bloodType: Joi.string().optional().trim().empty(""),
+    tshirtSize: Joi.string().optional().trim().empty(""),
+    shortSize: Joi.string().optional().trim().empty(""),
     email: Joi.string().email().optional().empty(""),
     ipAddress: Joi.string().ip().optional().empty(""),
     isDown: Joi.boolean().required(),
