@@ -103,8 +103,8 @@ const playerBillsValidation = (data) => {
     playerInfo: {
       id: Joi.string().trim(),
       name: Joi.string().trim(),
-      address: Joi.string().trim(),
-      dni: Joi.string().required().trim(),
+      address: Joi.string().optional().trim(),
+      dni: Joi.string().required().optional().trim(),
     },
     price: Joi.number().required(),
     priceText: Joi.string().trim().required(),

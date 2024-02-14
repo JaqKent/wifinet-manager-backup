@@ -52,6 +52,7 @@ const playersSchema = new Schema(
         phone: {
             type: Number,
             required: false,
+            default: ""
         },
         phoneAlt: {
             type: Number,
