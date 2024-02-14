@@ -80,7 +80,7 @@ const playersValidation = (data) => {
     price: Joi.number().optional(),
     priceText: Joi.string().optional().trim(),
     priceInstall: Joi.number().optional().empty(""),
-    phone: Joi.number().optional(),
+    phone: Joi.number().optional().empty(""),
     phoneAlt: Joi.number().optional().empty(""),
     obraSocial: Joi.string().optional().trim().empty(""),
     nickName: Joi.string().optional().trim().empty(""),
