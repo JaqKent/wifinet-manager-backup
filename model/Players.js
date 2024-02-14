@@ -41,10 +41,6 @@ const playersSchema = new Schema(
             type: String,
             required: false,
         },
-        plan: {
-            type: String,
-            required: false,
-        },
         price: {
             type: Number,
             required: false,
