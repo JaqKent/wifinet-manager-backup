@@ -4,7 +4,7 @@ const playersBillSchema = new Schema(
     {
         playerBillNumber: {
             type: Number,
-            required: true,
+            required: false,
         },
         plan: {
             type: String,

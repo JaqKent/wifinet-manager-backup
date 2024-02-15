@@ -97,7 +97,7 @@ const playersValidation = (data) => {
 
 const playerBillsValidation = (data) => {
   const schema = Joi.object({
-    billNumber: Joi.number().required(),
+    playerBillNumber: Joi.number().required(),
     createdAt: Joi.date().required(),
     dueDate: Joi.date().required(),
     playerInfo: {
