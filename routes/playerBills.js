@@ -49,9 +49,12 @@ router.get(`/get/:id`, auth, (req, res) => {
 });
 
 router.post("/create", auth, (req, res) => {
-    PlayerBillCount.findOne()
-        .then((count) => {
-            let playerBillNumber = count.playerBillCount;
+
+    let billNumber = 0;
+
+    PlayerBillCount.find()
+        .then((i) => {
+            billNumber = i[0].playerBillCount;
 
             new PlayersBill({
                 billNumber: playerBillNumber,
