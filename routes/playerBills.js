@@ -51,9 +51,9 @@ router.get(`/get/:id`, auth, (req, res) => {
 router.post("/create", auth, (req, res) => {
     let PlayerBillNumber = 0;
 
-    PlayersBill.find()
+    PlayerBillCount.find()
         .then((i) => {
-            PlayerBillNumber = i[0].billCount;
+            PlayerBillNumber = i[0].playerBillCount;
 
             new Bill({
                 PlayerBillNumber,
@@ -63,8 +63,8 @@ router.post("/create", auth, (req, res) => {
                 .save()
                 .then((i) => {
                     var aidi = i._id;
-                    BillCount.findOneAndUpdate(PlayerBillNumber._id, {
-                        billCount: ++PlayerBillNumber,
+                    PlayerBillCount.findOneAndUpdate(PlayerBillNumber._id, {
+                        playerBillCount: ++PlayerBillNumber,
                     }).then((i) => {
                         res.send({
                             success: true,
@@ -114,7 +114,7 @@ router.post(`/search`, auth, (req, res) => {
 
 
 router.post(`/startCount`, (req, res) => {
-    new PlayerBillCount({ playerbillCount: 0 }).save().then((i) => res.send(i));
+    new PlayerBillCount({ playerBillCount: 0 }).save().then((i) => res.send(i));
 });
 
 router.delete(`/deleteBill/:id`, (req, res) => {
