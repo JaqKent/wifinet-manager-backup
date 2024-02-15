@@ -55,7 +55,7 @@ router.post("/create", auth, (req, res) => {
         .then((i) => {
             PlayerBillNumber = i[0].playerBillCount;
 
-            new Bill({
+            new PlayersBill({
                 PlayerBillNumber,
                 userInfo: { createdBy: req.user._id },
                 ...req.body,
