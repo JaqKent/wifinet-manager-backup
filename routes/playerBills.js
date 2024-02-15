@@ -49,44 +49,47 @@ router.get(`/get/:id`, auth, (req, res) => {
 });
 
 router.post("/create", auth, (req, res) => {
-    let PlayerBillNumber = 0;
-
-    PlayerBillCount.find()
-        .then((i) => {
-            PlayerBillNumber = i[0].playerBillCount;
+    PlayerBillCount.findOne()
+        .then((count) => {
+            let playerBillNumber = count.playerBillCount;
 
             new PlayersBill({
-                PlayerBillNumber,
+                billNumber: playerBillNumber,
                 userInfo: { createdBy: req.user._id },
                 ...req.body,
             })
                 .save()
-                .then((i) => {
-                    var aidi = i._id;
-                    PlayerBillCount.findOneAndUpdate(PlayerBillNumber._id, {
-                        playerBillCount: ++PlayerBillNumber,
-                    }).then((i) => {
-                        res.send({
-                            success: true,
-                            message: `Se ha guardado la boleta.`,
-                            id: aidi,
-                        });
-                    });
+                .then((bill) => {
+                    PlayerBillCount.findOneAndUpdate({}, { $inc: { playerBillCount: 1 } })
+                        .then(() => {
+                            res.send({
+                                success: true,
+                                message: "Se ha guardado la boleta.",
+                                id: bill._id,
+                            });
+                        })
+                        .catch((err) =>
+                            res.send({
+                                success: false,
+                                message: `Error al actualizar el contador de facturas: ${err.message}`,
+                            })
+                        );
                 })
                 .catch((err) =>
                     res.send({
                         success: false,
-                        message: `Ha ocurrido un error, ${err.message}`,
+                        message: `Ha ocurrido un error al guardar la factura: ${err.message}`,
                     })
                 );
         })
         .catch((err) =>
             res.send({
                 success: false,
-                message: `Ha ocurrido un error, ${err.message}`,
+                message: `Ha ocurrido un error al obtener el contador de facturas: ${err.message}`,
             })
         );
 });
+
 
 router.post(`/search`, auth, (req, res) => {
     let query = {};

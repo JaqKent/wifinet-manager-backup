@@ -2,7 +2,7 @@ const { Schema, model } = require("mongoose");
 
 const playersBillSchema = new Schema(
     {
-        playerBillNumber: {
+        BillNumber: {
             type: Number,
             required: true,
         },
