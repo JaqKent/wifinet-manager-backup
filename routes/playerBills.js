@@ -50,63 +50,58 @@ router.get(`/get/:id`, auth, (req, res) => {
 
 router.post("/create", auth, (req, res) => {
 
-    PlayerBillCount.findOne()
+    let playerBillNumber = 0;
+
+    PlayerBillCount.find()
         .then((count) => {
-            if (count) {
-                let playerBillNumber = count.playerBillCount;
+            playerBillNumber = count[0].playerBillCount;
 
-                new PlayersBill({
-                    playerBillNumber,
-                    userInfo: { createdBy: req.user._id },
-                    ...req.body,
-                })
-                    .save()
-                    .then((bill) => {
-                        PlayerBillCount.findOneAndUpdate({}, { $inc: { playerBillCount: 1 } })
-                            .then(() => {
-                                res.send({
-                                    success: true,
-                                    message: "Se ha guardado la boleta.",
-                                    id: bill._id,
-                                });
-                            })
-                            .catch((err) =>
-                                res.send({
-                                    success: false,
-                                    message: `Error al actualizar el contador de facturas: ${err.message}`,
-                                })
-                            );
-                    })
-                    .catch((err) =>
-                        res.send({
-                            success: false,
-                            message: `Ha ocurrido un error al guardar la factura: ${err.message}`,
-                        })
-                    );
-            } else {
-                PlayerBillCount.create({ playerBillCount: 0 })
-                    .then(() => {
-                        res.send({
-                            success: false,
-                            message: "No se encontró ningún contador de facturas. Se ha iniciado uno nuevo con un valor inicial de 0.",
-                        });
-                    })
-                    .catch((err) =>
-                        res.send({
-                            success: false,
-                            message: `Ha ocurrido un error al crear un nuevo contador de facturas: ${err.message}`,
-                        })
-                    );
-            }
-        })
-        .catch((err) =>
-            res.send({
-                success: false,
-                message: `Ha ocurrido un error al obtener el contador de facturas: ${err.message}`,
+            new PlayersBill({
+                playerBillNumber,
+                userInfo: { createdBy: req.user._id },
+                ...req.body,
             })
-        );
-
+                .save()
+                .then((bill) => {
+                    PlayerBillCount.findOneAndUpdate({}, { $inc: { playerBillCount: 1 } })
+                        .then(() => {
+                            res.send({
+                                success: true,
+                                message: "Se ha guardado la boleta.",
+                                id: bill._id,
+                            });
+                        })
+                        .catch((err) =>
+                            res.send({
+                                success: false,
+                                message: `Error al actualizar el contador de facturas: ${err.message}`,
+                            })
+                        );
+                })
+                .catch((err) =>
+                    res.send({
+                        success: false,
+                        message: `Ha ocurrido un error al guardar la factura: ${err.message}`,
+                    })
+                );
+        })
+        .catch((err) => {
+            PlayerBillCount.create({ playerBillCount: 0 })
+                .then(() => {
+                    res.send({
+                        success: false,
+                        message: "No se encontró ningún contador de facturas. Se ha iniciado uno nuevo con un valor inicial de 0.",
+                    });
+                })
+                .catch((err) =>
+                    res.send({
+                        success: false,
+                        message: `Ha ocurrido un error al crear un nuevo contador de facturas: ${err.message}`,
+                    })
+                );
+        });
 });
+
 
 
 router.post(`/search`, auth, (req, res) => {
