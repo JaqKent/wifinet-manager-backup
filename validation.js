@@ -33,6 +33,7 @@ const clientValidation = (data) => {
     inscriptionDate: Joi.date().optional().empty(""),
     unSubscribingDate: Joi.date().optional().empty(""),
     unSubscribingReason: Joi.string().trim().optional().empty(""),
+    plan: Joi.string().required().trim(),
     price: Joi.number().required(),
     priceText: Joi.string().required().trim(),
     priceInstall: Joi.number().optional().empty(""),
