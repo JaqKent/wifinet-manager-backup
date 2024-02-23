@@ -109,7 +109,8 @@ const playerBillsValidation = (data) => {
     },
     price: Joi.number().required(),
     priceText: Joi.string().trim().required(),
-    month: Joi.string().trim().required(),
+    month: Joi.string().trim().optional(),
+    year: Joi.string().trim().optional(),
     additionalNotes: Joi.string(),
   });
 

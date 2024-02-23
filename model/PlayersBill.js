@@ -30,7 +30,11 @@ const playersBillSchema = new Schema(
         },
         month: {
             type: String,
-            required: true,
+            required: false,
+        },
+        year: {
+            type: Number,
+            required: false,
         },
         additionalNotes: {
             type: String,
@@ -38,6 +42,9 @@ const playersBillSchema = new Schema(
         },
         partial: {
             type: Boolean,
+            default: false,
+        },
+        annualPayment: {
             default: false,
         },
         userInfo: {
