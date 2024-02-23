@@ -16,13 +16,13 @@ router.get("/get/:id", auth, (req, res) => {
 
 router.post(`/search`, auth, (req, res) => {
     let query = {};
-    let { name, address } = req.body;
+    let { name, category } = req.body;
 
     if (name) {
         query.name = { $regex: name, $options: "i" };
     }
-    if (address) {
-        query.address = { $regex: address, $options: "i" };
+    if (category) {
+        query.category = { $regex: category, $options: "i" };
     }
 
     Player.find(query)
