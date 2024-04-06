@@ -3,12 +3,12 @@ const auth = require("./verifyToken");
 const Client = require("../model/Client");
 const { clientValidation } = require("../validation");
 
-router.get("/get", async (req, res) => {
+router.get("/get", auth, async (req, res) => {
   const allClients = await Client.find();
   res.json(allClients);
 });
 
-router.get("/get/:id", (req, res) => {
+router.get("/get/:id", auth, (req, res) => {
   Client.find({ _id: req.params.id })
     .then((i) => res.send({ success: true, data: i }))
     .catch((err) => res.send({ success: false, message: err.message }));
