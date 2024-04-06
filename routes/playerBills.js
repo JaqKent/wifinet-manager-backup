@@ -42,7 +42,7 @@ router.get("/get", auth, (req, res) => {
         .catch((err) => res.send({ success: false, message: err.message }));
 });
 
-router.get(`/get/:id`, auth, (req, res) => {
+router.get(`/get/:id`, (req, res) => {
     PlayersBill.find({ _id: req.params.id })
         .then((i) => res.send({ success: true, data: i }))
         .catch((err) => res.send({ success: false, message: err.message }));
