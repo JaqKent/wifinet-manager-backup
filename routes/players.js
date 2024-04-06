@@ -3,12 +3,12 @@ const auth = require("./verifyToken");
 const Player = require("../model/Players");
 const { playersValidation } = require("../validation");
 
-router.get("/get", auth, async (req, res) => {
+router.get("/get", async (req, res) => {
     const allPlayers = await Player.find();
     res.json(allPlayers);
 });
 
-router.get("/get/:id", auth, (req, res) => {
+router.get("/get/:id", (req, res) => {
     Player.find({ _id: req.params.id })
         .then((i) => res.send({ success: true, data: i }))
         .catch((err) => res.send({ success: false, message: err.message }));
