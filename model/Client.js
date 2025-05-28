@@ -77,6 +77,20 @@ const clientSchema = new Schema(
       type: Schema.ObjectId,
       required: true,
     },
+    accountStatus: {
+      month: { type: String },
+      paid: { type: Boolean, default: false },
+      price: { type: Number },
+    },
+    paymentHistory: [
+      {
+        month: String,
+        amount: Number,
+        paid: Boolean,
+        paymentDate: Date,
+        notes: String
+      }
+    ],
   },
   { timestamps: true }
 );

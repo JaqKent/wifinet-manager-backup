@@ -31,6 +31,28 @@ router.post(`/search`, auth, (req, res) => {
     .catch((err) => res.send({ success: false, message: err.message }));
 });
 
+router.put("/payment/:id", auth, async (req, res) => {
+  try {
+    const { month, amount, paid, paymentDate, notes } = req.body;
+
+    const client = await Client.findById(req.params.id);
+    if (!client) return res.status(404).send({ success: false, message: "Cliente no encontrado" });
+
+    const idx = client.paymentHistory.findIndex(p => p.month === month);
+
+    if (idx > -1) {
+      client.paymentHistory[idx] = { month, amount, paid, paymentDate, notes };
+    } else {
+      client.paymentHistory.push({ month, amount, paid, paymentDate, notes });
+    }
+
+    await client.save();
+    res.send({ success: true, data: client.paymentHistory });
+  } catch (err) {
+    res.status(500).send({ success: false, message: err.message });
+  }
+});
+
 router.post("/create", auth, async (req, res) => {
   const { error } = clientValidation(req.body);
   if (error) {
