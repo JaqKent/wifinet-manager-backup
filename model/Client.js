@@ -75,7 +75,7 @@ const clientSchema = new Schema(
     },
     createdBy: {
       type: Schema.ObjectId,
-      required: true,
+      required: false,
     },
     accountStatus: {
       month: { type: String },
@@ -84,9 +84,9 @@ const clientSchema = new Schema(
     },
     paymentHistory: [
       {
-        month: String,
+        month: { type: String },
+        paid: { type: Boolean },
         amount: Number,
-        paid: Boolean,
         paymentDate: Date,
         notes: String
       }
