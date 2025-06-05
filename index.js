@@ -26,6 +26,7 @@ const clientRoute = require("./routes/clients");
 const billRoute = require("./routes/bills");
 const playerRoute = require("./routes/players");
 const playersillRoute = require("./routes/playerBills");
+const importPaymentsRoute = require("./routes/payments");
 
 // Middlewares de ruta
 
@@ -34,6 +35,7 @@ app.use("/api/clients", clientRoute);
 app.use("/api/bills", billRoute);
 app.use("/api/players", playerRoute);
 app.use("/api/playerBills", playersillRoute);
+app.use("/api/payments", importPaymentsRoute);
 
 if (process.env.NODE_ENV === "production") {
   app.use(express.static("client/build"));
