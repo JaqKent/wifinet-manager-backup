@@ -88,7 +88,8 @@ const clientSchema = new Schema(
         paid: { type: Boolean },
         amount: Number,
         paymentDate: Date,
-        notes: String
+        notes: String,
+        partial: Boolean
       }
     ],
   },
