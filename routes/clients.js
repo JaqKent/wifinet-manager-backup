@@ -32,9 +32,10 @@ router.post(`/search`, auth, (req, res) => {
 });
 
 // ...en tu archivo de rutas de clientes...
+// ...en tu archivo de rutas de clientes...
 router.put("/payment/:id", auth, async (req, res) => {
   try {
-    const { month, amount, paid, paymentDate, notes } = req.body;
+    const { month, amount, paid, paymentDate, notes, partial } = req.body; // <-- AGREGA partial AQUÍ
 
     const client = await Client.findById(req.params.id);
     if (!client) return res.status(404).send({ success: false, message: "Cliente no encontrado" });
@@ -44,7 +45,6 @@ router.put("/payment/:id", auth, async (req, res) => {
     const idx = client.paymentHistory.findIndex(p => p.month === month);
 
     if (idx > -1) {
-      // Actualiza solo los campos necesarios, sin borrar otros
       client.paymentHistory[idx] = {
         ...client.paymentHistory[idx],
         month,
@@ -55,7 +55,7 @@ router.put("/payment/:id", auth, async (req, res) => {
         partial
       };
     } else {
-      client.paymentHistory.push({ month, amount, paid, paymentDate, notes });
+      client.paymentHistory.push({ month, amount, paid, paymentDate, notes, partial });
     }
 
     await client.save();
