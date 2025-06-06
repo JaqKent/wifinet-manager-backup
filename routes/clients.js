@@ -51,7 +51,8 @@ router.put("/payment/:id", auth, async (req, res) => {
         amount,
         paid,
         paymentDate,
-        notes
+        notes,
+        partial
       };
     } else {
       client.paymentHistory.push({ month, amount, paid, paymentDate, notes });
