@@ -1,6 +1,6 @@
 const router = require("express").Router();
 const auth = require("./verifyToken");
-const Player = require("../model/Player");
+const Player = require("../model/Players");
 const XLSX = require("xlsx");
 const multer = require("multer");
 const fs = require("fs");
