@@ -36,6 +36,7 @@ app.use("/api/bills", billRoute);
 app.use("/api/players", playerRoute);
 app.use("/api/playerBills", playersillRoute);
 app.use("/api/payments", importPaymentsRoute);
+app.use("/api/playerspayments", importPaymentsRoute);
 
 if (process.env.NODE_ENV === "production") {
   app.use(express.static("client/build"));

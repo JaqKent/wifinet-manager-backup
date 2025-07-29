@@ -31,6 +31,64 @@ router.post(`/search`, auth, (req, res) => {
         .catch((err) => res.send({ success: false, message: err.message }));
 });
 
+router.put("/payment/:id", auth, async (req, res) => {
+    try {
+        const { month, amount, paid, paymentDate, notes, partial, partialPayment, billId } = req.body;
+
+        const player = await Player.findById(req.params.id);
+        if (!player) return res.status(404).send({ success: false, message: "Jugador no encontrado" });
+
+        if (!player.paymentHistory) player.paymentHistory = [];
+
+        const idx = player.paymentHistory.findIndex(p => p.month === month);
+
+        if (idx > -1) {
+            if (partial && partialPayment) {
+                if (!player.paymentHistory[idx].partialPayments) player.paymentHistory[idx].partialPayments = [];
+
+                player.paymentHistory[idx].partialPayments.push({ ...partialPayment, billId });
+
+                const totalPagado = player.paymentHistory[idx].partialPayments.reduce((sum, p) => sum + Number(p.amount), 0);
+                player.paymentHistory[idx].paid = totalPagado >= amount;
+                player.paymentHistory[idx].partial = !player.paymentHistory[idx].paid;
+                player.paymentHistory[idx].amount = amount;
+                player.paymentHistory[idx].notes = notes;
+                player.paymentHistory[idx].paymentDate = paymentDate;
+                player.paymentHistory[idx].billId = billId;
+            } else {
+                player.paymentHistory[idx] = {
+                    ...player.paymentHistory[idx],
+                    month,
+                    amount,
+                    paid,
+                    paymentDate,
+                    notes,
+                    partial,
+                    billId,
+                    partialPayments: []
+                };
+            }
+        } else {
+            player.paymentHistory.push({
+                month,
+                amount,
+                paid,
+                paymentDate,
+                notes,
+                partial,
+                billId,
+                partialPayments: partial && partialPayment ? [{ ...partialPayment, billId }] : []
+            });
+        }
+
+        await player.save();
+        res.send({ success: true, data: player.paymentHistory });
+    } catch (err) {
+        console.error('Error en /payment/:id:', err);
+        res.status(500).send({ success: false, message: err.message });
+    }
+});
+
 router.post("/create", auth, async (req, res) => {
     const { error } = playersValidation(req.body);
     if (error) {

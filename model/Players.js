@@ -90,6 +90,30 @@ const playersSchema = new Schema(
             type: Schema.ObjectId,
             required: true,
         },
+        accountStatus: {
+            month: { type: String },
+            paid: { type: Boolean, default: false },
+            price: { type: Number },
+        },
+        paymentHistory: [
+            {
+                month: { type: String },
+                paid: { type: Boolean },
+                amount: Number,
+                paymentDate: Date,
+                notes: String,
+                partial: Boolean,
+                billId: { type: Schema.Types.ObjectId, ref: 'PlayersBill' },
+                partialPayments: [
+                    {
+                        amount: Number,
+                        date: Date,
+                        notes: String,
+                        billId: { type: Schema.Types.ObjectId, ref: 'PlayersBill' }
+                    }
+                ]
+            }
+        ],
     },
     { timestamps: true }
 );

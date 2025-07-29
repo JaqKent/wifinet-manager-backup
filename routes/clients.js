@@ -31,11 +31,9 @@ router.post(`/search`, auth, (req, res) => {
     .catch((err) => res.send({ success: false, message: err.message }));
 });
 
-// ...en tu archivo de rutas de clientes...
-// ...en tu archivo de rutas de clientes...
 router.put("/payment/:id", auth, async (req, res) => {
   try {
-    const { month, amount, paid, paymentDate, notes, partial } = req.body; // <-- AGREGA partial AQUÍ
+    const { month, amount, paid, paymentDate, notes, partial, partialPayment, billId } = req.body;
 
     const client = await Client.findById(req.params.id);
     if (!client) return res.status(404).send({ success: false, message: "Cliente no encontrado" });
@@ -45,17 +43,42 @@ router.put("/payment/:id", auth, async (req, res) => {
     const idx = client.paymentHistory.findIndex(p => p.month === month);
 
     if (idx > -1) {
-      client.paymentHistory[idx] = {
-        ...client.paymentHistory[idx],
+      if (partial && partialPayment) {
+        if (!client.paymentHistory[idx].partialPayments) client.paymentHistory[idx].partialPayments = [];
+
+        client.paymentHistory[idx].partialPayments.push({ ...partialPayment, billId });
+
+        const totalPagado = client.paymentHistory[idx].partialPayments.reduce((sum, p) => sum + Number(p.amount), 0);
+        client.paymentHistory[idx].paid = totalPagado >= amount;
+        client.paymentHistory[idx].partial = !client.paymentHistory[idx].paid;
+        client.paymentHistory[idx].amount = amount;
+        client.paymentHistory[idx].notes = notes;
+        client.paymentHistory[idx].paymentDate = paymentDate;
+        client.paymentHistory[idx].billId = billId;
+      } else {
+        client.paymentHistory[idx] = {
+          ...client.paymentHistory[idx],
+          month,
+          amount,
+          paid,
+          paymentDate,
+          notes,
+          partial,
+          billId,
+          partialPayments: []
+        };
+      }
+    } else {
+      client.paymentHistory.push({
         month,
         amount,
         paid,
         paymentDate,
         notes,
-        partial
-      };
-    } else {
-      client.paymentHistory.push({ month, amount, paid, paymentDate, notes, partial });
+        partial,
+        billId,
+        partialPayments: partial && partialPayment ? [{ ...partialPayment, billId }] : []
+      });
     }
 
     await client.save();

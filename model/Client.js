@@ -89,7 +89,16 @@ const clientSchema = new Schema(
         amount: Number,
         paymentDate: Date,
         notes: String,
-        partial: Boolean
+        partial: Boolean,
+        billId: { type: Schema.Types.ObjectId, ref: 'Bill' },
+        partialPayments: [
+          {
+            amount: Number,
+            date: Date,
+            notes: String,
+            billId: { type: Schema.Types.ObjectId, ref: 'Bill' }
+          }
+        ]
       }
     ],
   },
