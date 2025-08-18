@@ -7,6 +7,26 @@ const fs = require("fs");
 
 const upload = multer({ dest: "uploads/" });
 
+
+router.post("/reset-payments", async (req, res) => {
+    try {
+        const result = await Client.updateMany({}, {
+            $set: {
+                paymentHistory: [],
+                priceHistory: []
+            }
+        });
+
+        res.send({
+            success: true,
+            message: `Historiales borrados. Clientes afectados: ${result.modifiedCount}`
+        });
+    } catch (error) {
+        console.error("Error al resetear historiales:", error);
+        res.status(500).send({ success: false, message: error.message });
+    }
+});
+
 router.post("/import-payments", upload.single("file"), async (req, res) => {
     try {
         if (!req.file) return res.status(400).send({ success: false, message: "No se subió ningún archivo." });
@@ -46,12 +66,58 @@ router.post("/import-payments", upload.single("file"), async (req, res) => {
             const direccionExcel = normalizar(fila["Dirección"] || fila["Direccion"] || fila["Domicilio"] || fila["address"] || "");
             if (!nombreExcel) continue;
 
-            // Armar paymentHistory según el formato de la planilla
             const paymentHistory = [];
+            const priceHistory = [];
             const keys = Object.keys(fila);
             let firstMonthIdx = keys.findIndex(k => meses.includes(k));
             if (firstMonthIdx === -1) firstMonthIdx = 0;
 
+            // Detectar bloques de aumento
+            let currentPrice = null;
+            let currentStartMonth = null;
+
+            for (let i = 0; i < keys.length; i++) {
+                const key = keys[i];
+
+                if (key.toUpperCase().includes("PRECIOS DESDE")) {
+                    const match = key.match(/(\w+)\s+(\d{4})/);
+                    if (match) {
+                        const mesTexto = match[1].toUpperCase();
+                        const año = match[2];
+                        const mesesMap = {
+                            "ENERO": "01", "FEBRERO": "02", "MARZO": "03", "ABRIL": "04",
+                            "MAYO": "05", "JUNIO": "06", "JULIO": "07", "AGOSTO": "08",
+                            "SEPTIEMBRE": "09", "OCTUBRE": "10", "NOVIEMBRE": "11", "DICIEMBRE": "12"
+                        };
+                        const mm = mesesMap[mesTexto];
+                        if (mm) {
+                            currentStartMonth = `${mm}/${año}`;
+                            currentPrice = Number(fila[keys[i + 1]]);
+                        }
+                    }
+                }
+
+                if (currentPrice && meses.includes(key.toUpperCase())) {
+                    const idx = i;
+                    const fechaRaw = fila[keys[idx + 2]];
+                    const fecha = new Date(fechaRaw);
+                    if (!isNaN(fecha.getTime())) {
+                        const mm = (fecha.getMonth() + 1).toString().padStart(2, "0");
+                        const yyyy = fecha.getFullYear();
+                        const monthString = `${mm}/${yyyy}`;
+
+                        if (!priceHistory.some(p => p.month === monthString)) {
+                            priceHistory.push({
+                                month: monthString,
+                                price: currentPrice,
+                                appliedOn: fecha
+                            });
+                        }
+                    }
+                }
+            }
+
+            // Generar paymentHistory y priceHistory por cada mes pagado
             for (let i = 0; i < meses.length; i++) {
                 const mes = meses[i];
                 const idx = keys.findIndex((k, j) => j >= firstMonthIdx && k === mes);
@@ -63,10 +129,8 @@ router.post("/import-payments", upload.single("file"), async (req, res) => {
 
                 if (!monto || monto === "") continue;
 
-                // Estado de pago: siempre boolean
-                const paid = estado && estado.toString().trim().toUpperCase() === "P" ? true : false;
+                const paid = estado && estado.toString().trim().toUpperCase() === "P";
 
-                // Fecha de pago
                 let fechaPago = null;
                 if (fechaPagoRaw) {
                     if (typeof fechaPagoRaw === "number") {
@@ -77,19 +141,22 @@ router.post("/import-payments", upload.single("file"), async (req, res) => {
                     }
                 }
 
-                // Mes en formato MM/YYYY (si hay fecha de pago, usar esa)
                 let monthString = null;
-                if (fechaPago) {
-                    const mm = (fechaPago.getMonth() + 1).toString().padStart(2, "0");
+                if (fechaPago && !isNaN(fechaPago.getTime())) {
                     const yyyy = fechaPago.getFullYear();
-                    monthString = `${mm}/${yyyy}`;
+                    const mm = (fechaPago.getMonth() + 1).toString().padStart(2, "0");
+
+                    if (yyyy === 2025 && parseInt(mm) >= 1 && parseInt(mm) <= 7) {
+                        monthString = `${mm}/${yyyy}`;
+                    } else {
+                        console.warn(`❌ Fecha fuera de rango: ${fechaPago} (${fila["Nombre y Apellido"]})`);
+                        continue;
+                    }
                 } else {
-                    const mm = (i + 1).toString().padStart(2, "0");
-                    const yyyy = new Date().getFullYear();
-                    monthString = `${mm}/${yyyy}`;
+                    console.warn(`⚠️ Fecha inválida para ${mes} (${fila["Nombre y Apellido"]})`);
+                    continue;
                 }
 
-                // Evitar duplicados
                 if (!paymentHistory.some(p => p.month === monthString)) {
                     paymentHistory.push({
                         month: monthString,
@@ -99,56 +166,43 @@ router.post("/import-payments", upload.single("file"), async (req, res) => {
                         notes: typeof fila["Observaciones"] === "string" ? fila["Observaciones"] : ""
                     });
                 }
+
+                if (!priceHistory.some(p => p.month === monthString)) {
+                    priceHistory.push({
+                        month: monthString,
+                        price: Number(monto),
+                        appliedOn: fechaPago || null
+                    });
+                }
             }
 
-            // Filtrar pagos inválidos (por si acaso)
             const cleanPaymentHistory = paymentHistory.filter(p =>
                 typeof p.month === "string" &&
                 typeof p.amount === "number" && !isNaN(p.amount) &&
                 typeof p.paid === "boolean"
             );
 
-            // Solo actualizar si hay pagos válidos
             if (cleanPaymentHistory.length === 0) {
                 noEncontrados.push(fila["Nombre y Apellido"] + " (sin pagos en Excel)");
                 continue;
             }
 
             try {
-                // Buscar todos los clientes una sola vez por iteración
                 const todos = await Client.find({});
-                let clienteMatch = todos.find(c => nombresCoinciden(fila["Nombre y Apellido"], c.name));
-
-                if (!clienteMatch && direccionExcel) {
-                    clienteMatch = todos.find(c => normalizar(c.address) === direccionExcel);
-                }
-
-                if (!clienteMatch && direccionExcel) {
-                    clienteMatch = todos.find(c =>
-                        nombresCoinciden(fila["Nombre y Apellido"], c.name) &&
-                        normalizar(c.address) === direccionExcel
-                    );
-                }
+                const clienteMatch = todos.find(c =>
+                    nombresCoinciden(fila["Nombre y Apellido"], c.name) &&
+                    normalizar(c.address) === direccionExcel
+                );
 
                 if (clienteMatch) {
-                    console.log("Cliente:", clienteMatch.name);
-                    console.log("Nuevo paymentHistory:", cleanPaymentHistory);
-                    console.log("Actual paymentHistory:", clienteMatch.paymentHistory);
-
-                    // Fusión con el historial existente
-                    const pagosExistentes = Array.isArray(clienteMatch.paymentHistory) ? clienteMatch.paymentHistory : [];
-
-                    const nuevosPagos = cleanPaymentHistory.filter(pNuevo =>
-                        !pagosExistentes.some(pExistente =>
-                            pExistente.month === pNuevo.month && pExistente.amount === pNuevo.amount
-                        )
-                    );
-
-                    const pagosActualizados = [...pagosExistentes, ...nuevosPagos];
-
                     const updateResult = await Client.updateOne(
                         { _id: clienteMatch._id },
-                        { $set: { paymentHistory: pagosActualizados } }
+                        {
+                            $set: {
+                                paymentHistory: cleanPaymentHistory,
+                                priceHistory: priceHistory
+                            }
+                        }
                     );
 
                     if (updateResult.modifiedCount > 0) {
