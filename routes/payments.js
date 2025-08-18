@@ -34,6 +34,7 @@ router.post("/import-payments", upload.single("file"), async (req, res) => {
                 .trim()
                 .toLowerCase();
         }
+
         function nombresCoinciden(nombreExcel, nombreDB) {
             const partesExcel = normalizar(nombreExcel).split(" ").filter(Boolean);
             const nombreDBNorm = normalizar(nombreDB);
@@ -133,10 +134,23 @@ router.post("/import-payments", upload.single("file"), async (req, res) => {
                     console.log("Cliente:", clienteMatch.name);
                     console.log("Nuevo paymentHistory:", cleanPaymentHistory);
                     console.log("Actual paymentHistory:", clienteMatch.paymentHistory);
+
+                    // Fusión con el historial existente
+                    const pagosExistentes = Array.isArray(clienteMatch.paymentHistory) ? clienteMatch.paymentHistory : [];
+
+                    const nuevosPagos = cleanPaymentHistory.filter(pNuevo =>
+                        !pagosExistentes.some(pExistente =>
+                            pExistente.month === pNuevo.month && pExistente.amount === pNuevo.amount
+                        )
+                    );
+
+                    const pagosActualizados = [...pagosExistentes, ...nuevosPagos];
+
                     const updateResult = await Client.updateOne(
                         { _id: clienteMatch._id },
-                        { $set: { paymentHistory: cleanPaymentHistory } }
+                        { $set: { paymentHistory: pagosActualizados } }
                     );
+
                     if (updateResult.modifiedCount > 0) {
                         actualizados++;
                     } else {

@@ -91,6 +91,7 @@ const clientSchema = new Schema(
         notes: String,
         partial: Boolean,
         billId: { type: Schema.Types.ObjectId, ref: 'Bill' },
+
         partialPayments: [
           {
             amount: Number,
@@ -99,6 +100,12 @@ const clientSchema = new Schema(
             billId: { type: Schema.Types.ObjectId, ref: 'Bill' }
           }
         ]
+      }
+    ],
+    priceHistory: [
+      {
+        month: String,
+        price: Number
       }
     ],
   },
