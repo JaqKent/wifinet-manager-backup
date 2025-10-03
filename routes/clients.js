@@ -121,4 +121,36 @@ router.delete("/delete/:id", auth, (req, res) => {
     .catch((err) => res.send({ success: false, message: err.message }));
 });
 
+router.put("/confirm-payment", auth, async (req, res) => {
+  const { clientId, month } = req.body;
+
+  if (!clientId || !month) {
+    return res.status(400).send({ success: false, message: "Faltan datos." });
+  }
+
+  try {
+    const client = await Client.findById(clientId);
+    if (!client) {
+      return res.status(404).send({ success: false, message: "Cliente no encontrado." });
+    }
+
+    const pago = client.paymentHistory.find(p => p.month === month);
+    if (!pago) {
+      return res.status(404).send({ success: false, message: "Pago no encontrado." });
+    }
+
+    if (pago.paid === true) {
+      return res.status(200).send({ success: true, message: "El pago ya estaba confirmado." });
+    }
+
+    pago.paid = true;
+    await client.save();
+
+    res.send({ success: true, message: "Pago confirmado." });
+  } catch (error) {
+    console.error("Error al confirmar pago:", error);
+    res.status(500).send({ success: false, message: error.message });
+  }
+});
+
 module.exports = router;
