@@ -139,16 +139,16 @@ router.put("/confirm-payment", auth, async (req, res) => {
       return res.status(404).send({ success: false, message: "Pago no encontrado." });
     }
 
-    if (pago.paid === true) {
-      return res.status(200).send({ success: true, message: "El pago ya estaba confirmado." });
-    }
-
-    pago.paid = true;
+    pago.paid = !pago.paid;
     await client.save();
 
-    res.send({ success: true, message: "Pago confirmado." });
+    res.send({
+      success: true,
+      message: pago.paid ? "Pago confirmado." : "Pago anulado."
+    });
+
   } catch (error) {
-    console.error("Error al confirmar pago:", error);
+    console.error("Error al confirmar/anular pago:", error);
     res.status(500).send({ success: false, message: error.message });
   }
 });
